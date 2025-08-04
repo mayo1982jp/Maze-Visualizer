@@ -15,12 +15,9 @@
         --line: #111827;
         --white: #ffffff;
       }
-      body {
-        background: #0b0c0f;
-      }
-      .card {
-        border-color: #1f2430 !important;
-      }
+      body { background: #0b0c0f; }
+      .card { border-color: #1f2430 !important; background: #11131a; }
+      .card-header { border-bottom-color: #1f2430 !important; }
       .canvas-wrap {
         width: 100%;
         height: 420px;
@@ -38,84 +35,94 @@
   </head>
   <body>
     <div class="container my-4">
-      <div class="card">
-        <div class="card-header fw-bold">Maze Generator & Algorithm Visualizer</div>
-        <div class="card-body">
-          <div class="row g-4">
-            <div class="col-12 col-md-4">
-              <div class="vstack gap-3">
-                <div>
-                  <label class="form-label" id="sizeLabel">Grid size: 30 x 30</label>
-                  <input id="sizeRange" type="range" min="20" max="100" step="1" value="30" class="form-range">
-                </div>
+      <div class="mb-3">
+        <h1 class="h4 mb-0">Maze Generator & Algorithm Visualizer</h1>
+        <div class="muted">Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.</div>
+      </div>
 
-                <div>
-                  <label class="form-label">Generator</label>
-                  <select id="genSelect" class="form-select">
-                    <option value="recursive-backtracker">Recursive Backtracker</option>
-                    <option value="prims">Prim's</option>
-                    <option value="kruskals">Kruskal's</option>
-                  </select>
-                </div>
+      <div class="row g-3">
+        <!-- Grid size card -->
+        <div class="col-12 col-md-4">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Grid size</div>
+            <div class="card-body">
+              <label class="form-label" id="sizeLabel">Grid size: 30 x 30</label>
+              <input id="sizeRange" type="range" min="20" max="100" step="1" value="30" class="form-range">
 
-                <div class="d-flex gap-2 flex-wrap">
-                  <button id="genStartBtn" class="btn btn-primary">Generate</button>
-                  <button id="genStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
-                  <button id="genPlayBtn" class="btn btn-secondary" disabled>Play</button>
-                </div>
+              <div class="mt-3">
+                <label class="form-label">Generator</label>
+                <select id="genSelect" class="form-select">
+                  <option value="recursive-backtracker">Recursive Backtracker</option>
+                  <option value="prims">Prim's</option>
+                  <option value="kruskals">Kruskal's</option>
+                </select>
+              </div>
+
+              <div class="d-flex gap-2 flex-wrap mt-3">
+                <button id="genStartBtn" class="btn btn-primary">Generate</button>
+                <button id="genStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
+                <button id="genPlayBtn" class="btn btn-secondary" disabled>Play</button>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div class="col-12 col-md-4">
-              <div class="vstack gap-3">
-                <div>
-                  <label class="form-label">Solver</label>
-                  <select id="solverSelect" class="form-select" disabled>
-                    <option value="a-star">A* (Manhattan)</option>
-                    <option value="bfs">BFS</option>
-                    <option value="dijkstra">Dijkstra</option>
-                  </select>
-                </div>
+        <!-- Solver card -->
+        <div class="col-12 col-md-4">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Solver</div>
+            <div class="card-body">
+              <label class="form-label">Algorithm</label>
+              <select id="solverSelect" class="form-select" disabled>
+                <option value="a-star">A* (Manhattan)</option>
+                <option value="bfs">BFS</option>
+                <option value="dijkstra">Dijkstra</option>
+              </select>
 
-                <div class="d-flex gap-2 flex-wrap">
-                  <button id="solveStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
-                  <button id="solvePlayBtn" class="btn btn-secondary" disabled>Play</button>
-                  <button id="clearBtn" class="btn btn-outline-secondary" disabled>Clear</button>
-                </div>
-
-                <div class="muted">Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.</div>
+              <div class="d-flex gap-2 flex-wrap mt-3">
+                <button id="solveStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
+                <button id="solvePlayBtn" class="btn btn-secondary" disabled>Play</button>
+                <button id="clearBtn" class="btn btn-outline-secondary" disabled>Clear</button>
               </div>
-            </div>
 
-            <div class="col-12 col-md-4">
-              <div class="vstack gap-3">
-                <div>
-                  <label class="form-label" id="hzLabel">Speed (Hz): 10</label>
-                  <input id="hzRange" type="range" min="10" max="120" step="1" value="10" class="form-range">
-                </div>
-
-                <div>
-                  <div class="form-label">Live Stats</div>
-                  <div class="border rounded p-3 small">
-                    <div class="d-flex justify-content-between"><span>Visited</span><span id="statVisited">0</span></div>
-                    <div class="d-flex justify-content-between"><span>Current Path Length</span><span id="statPath">0</span></div>
-                    <div class="d-flex justify-content-between"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
-                    <hr class="my-2">
-                    <div class="d-flex align-items-center gap-2 flex-wrap text-secondary">
-                      <span class="legend-swatch" style="background: var(--cyan)"></span><span>Frontier</span>
-                      <span class="legend-swatch" style="background: var(--gray)"></span><span>Visited</span>
-                      <span class="legend-swatch" style="background: var(--yellow)"></span><span>Path</span>
-                    </div>
+              <div class="mt-3">
+                <div class="form-label">Live Stats</div>
+                <div class="border rounded p-3 small">
+                  <div class="d-flex justify-content-between"><span>Visited</span><span id="statVisited">0</span></div>
+                  <div class="d-flex justify-content-between"><span>Current Path Length</span><span id="statPath">0</span></div>
+                  <div class="d-flex justify-content-between"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
+                  <hr class="my-2">
+                  <div class="d-flex align-items-center gap-2 flex-wrap text-secondary">
+                    <span class="legend-swatch" style="background: var(--cyan)"></span><span>Frontier</span>
+                    <span class="legend-swatch" style="background: var(--gray)"></span><span>Visited</span>
+                    <span class="legend-swatch" style="background: var(--yellow)"></span><span>Path</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="canvas-wrap mt-4">
-            <canvas id="mazeCanvas" class="w-100 h-100 d-block"></canvas>
+        <!-- Speed card -->
+        <div class="col-12 col-md-4">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Speed</div>
+            <div class="card-body">
+              <label class="form-label" id="hzLabel">Speed (Hz): 10</label>
+              <input id="hzRange" type="range" min="10" max="120" step="1" value="10" class="form-range">
+
+              <div class="mt-3">
+                <div class="form-text text-secondary">
+                  Adjust solver playback speed from 10 to 120 Hz.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div class="canvas-wrap mt-4">
+        <canvas id="mazeCanvas" class="w-100 h-100 d-block"></canvas>
       </div>
 
       <p class="text-center text-secondary small mt-3 mb-0">
@@ -453,6 +460,7 @@
         if(canvas.width !== bw || canvas.height !== bh){
           canvas.width = bw; canvas.height = bh;
         }
+        const ctx = canvas.getContext("2d");
         ctx.setTransform(1,0,0,1,0,0);
         ctx.scale(dpr, dpr);
         ctx.clearRect(0,0,W,H);
@@ -583,7 +591,7 @@
         if(solveState.type) {
           initSolver(solverSelect.value);
         } else {
-          solver = solverSelect.value;
+          // 生成後に初回操作で走らせるため保持のみ
         }
       });
 
@@ -615,6 +623,7 @@
       function resizeCanvas(){
         const wrap = document.querySelector('.canvas-wrap');
         const rect = wrap.getBoundingClientRect();
+        const canvas = document.getElementById("mazeCanvas");
         canvas.style.width = rect.width + "px";
         canvas.style.height = rect.height + "px";
       }
