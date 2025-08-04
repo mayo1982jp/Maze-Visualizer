@@ -42,7 +42,7 @@
 
       <div class="row g-3">
         <!-- Grid size card -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-lg-3">
           <div class="card h-100">
             <div class="card-header fw-semibold">Grid size</div>
             <div class="card-body">
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Solver card -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-lg-3">
           <div class="card h-100">
             <div class="card-header fw-semibold">Solver</div>
             <div class="card-body">
@@ -84,27 +84,12 @@
                 <button id="solvePlayBtn" class="btn btn-secondary" disabled>Play</button>
                 <button id="clearBtn" class="btn btn-outline-secondary" disabled>Clear</button>
               </div>
-
-              <div class="mt-3">
-                <div class="form-label">Live Stats</div>
-                <div class="border rounded p-3 small">
-                  <div class="d-flex justify-content-between"><span>Visited</span><span id="statVisited">0</span></div>
-                  <div class="d-flex justify-content-between"><span>Current Path Length</span><span id="statPath">0</span></div>
-                  <div class="d-flex justify-content-between"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
-                  <hr class="my-2">
-                  <div class="d-flex align-items-center gap-2 flex-wrap text-secondary">
-                    <span class="legend-swatch" style="background: var(--cyan)"></span><span>Frontier</span>
-                    <span class="legend-swatch" style="background: var(--gray)"></span><span>Visited</span>
-                    <span class="legend-swatch" style="background: var(--yellow)"></span><span>Path</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
         <!-- Speed card -->
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6 col-lg-3">
           <div class="card h-100">
             <div class="card-header fw-semibold">Speed</div>
             <div class="card-body">
@@ -119,6 +104,27 @@
             </div>
           </div>
         </div>
+
+        <!-- Live Stats card -->
+        <div class="col-12 col-md-6 col-lg-3">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">Live Stats</div>
+            <div class="card-body">
+              <div class="border rounded p-3 small">
+                <div class="d-flex justify-content-between"><span>Visited</span><span id="statVisited">0</span></div>
+                <div class="d-flex justify-content-between"><span>Current Path Length</span><span id="statPath">0</span></div>
+                <div class="d-flex justify-content-between"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
+                <hr class="my-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap text-secondary">
+                  <span class="legend-swatch" style="background: var(--cyan)"></span><span>Frontier</span>
+                  <span class="legend-swatch" style="background: var(--gray)"></span><span>Visited</span>
+                  <span class="legend-swatch" style="background: var(--yellow)"></span><span>Path</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="canvas-wrap mt-4">
@@ -591,7 +597,7 @@
         if(solveState.type) {
           initSolver(solverSelect.value);
         } else {
-          // 生成後に初回操作で走らせるため保持のみ
+          // 初回開始前は選択のみ保持
         }
       });
 
