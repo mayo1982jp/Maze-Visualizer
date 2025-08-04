@@ -1,19 +1,12 @@
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Maze Generator & Algorithm Visualizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
       :root {
-        --bg: #0b0c0f;
-        --panel: #11131a;
-        --text: #e5e7eb;
-        --muted: #9ca3af;
-        --border: #1f2430;
-        --btn: #1f2937;
-        --btn-h: #2b3647;
-
         --cyan: #06b6d4;
         --gray: #d1d5db;
         --yellow: #facc15;
@@ -22,202 +15,112 @@
         --line: #111827;
         --white: #ffffff;
       }
-      * { box-sizing: border-box; }
       body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      }
-      .container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 16px;
+        background: #0b0c0f;
       }
       .card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
+        border-color: #1f2430 !important;
       }
-      .card-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border);
-        font-weight: 700;
-        font-size: 18px;
-      }
-      .card-content {
-        padding: 16px;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-      }
-      @media (min-width: 768px) {
-        .grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-      }
-      .stack { display: grid; gap: 12px; }
-      .label { font-size: 14px; color: var(--muted); }
-
-      .row { display: flex; gap: 8px; flex-wrap: wrap; }
-      button, select {
-        background: var(--btn);
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 14px;
-      }
-      button:hover, select:hover { background: var(--btn-h); }
-      button[disabled], select[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      button.outline {
-        background: transparent;
-      }
-      input[type="range"] {
-        width: 100%;
-        appearance: none;
-        height: 6px;
-        border-radius: 9999px;
-        background: #2a2f3a;
-        outline: none;
-      }
-      input[type="range"]::-webkit-slider-thumb {
-        appearance: none;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: #64748b;
-        border: 2px solid #94a3b8;
-        cursor: pointer;
-      }
-      .stats {
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 12px;
-        font-size: 14px;
-        display: grid;
-        gap: 6px;
-      }
-      .stats .pair { display: flex; align-items: center; justify-content: space-between; }
-      .legend {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
-      .sep { height: 1px; width: 100%; background: var(--border); margin: 6px 0; }
-
       .canvas-wrap {
         width: 100%;
-        height: 480px;
-        border: 1px solid var(--border);
-        border-radius: 10px;
+        height: 420px;
+        border: 1px solid #1f2430;
+        border-radius: .75rem;
         overflow: hidden;
         background: var(--white);
       }
-      @media (min-width: 768px) {
-        .canvas-wrap { height: 640px; }
-      }
-
-      .foot {
-        text-align: center;
-        color: var(--muted);
-        font-size: 12px;
-        margin-top: 12px;
-      }
-      .foot a { color: var(--muted); text-decoration: none; }
-      .foot a:hover { text-decoration: underline; }
+      @media (min-width: 768px) { .canvas-wrap { height: 640px; } }
+      .legend-swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+      .form-range::-webkit-slider-thumb { background: #64748b; border: 2px solid #94a3b8; }
+      .form-range::-moz-range-thumb { background: #64748b; border: 2px solid #94a3b8; }
+      .muted { color: #9ca3af; font-size: .9rem; }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="container my-4">
       <div class="card">
-        <div class="card-header">Maze Generator & Algorithm Visualizer</div>
-        <div class="card-content">
-          <div class="grid">
-            <div class="stack">
-              <div class="stack">
-                <div class="label" id="sizeLabel">Grid size: 30 x 30</div>
-                <input id="sizeRange" type="range" min="20" max="100" step="1" value="30"/>
-              </div>
+        <div class="card-header fw-bold">Maze Generator & Algorithm Visualizer</div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-12 col-md-4">
+              <div class="vstack gap-3">
+                <div>
+                  <label class="form-label" id="sizeLabel">Grid size: 30 x 30</label>
+                  <input id="sizeRange" type="range" min="20" max="100" step="1" value="30" class="form-range">
+                </div>
 
-              <div class="stack">
-                <div class="label">Generator</div>
-                <select id="genSelect">
-                  <option value="recursive-backtracker">Recursive Backtracker</option>
-                  <option value="prims">Prim's</option>
-                  <option value="kruskals">Kruskal's</option>
-                </select>
-              </div>
+                <div>
+                  <label class="form-label">Generator</label>
+                  <select id="genSelect" class="form-select">
+                    <option value="recursive-backtracker">Recursive Backtracker</option>
+                    <option value="prims">Prim's</option>
+                    <option value="kruskals">Kruskal's</option>
+                  </select>
+                </div>
 
-              <div class="row">
-                <button id="genStartBtn">Generate</button>
-                <button id="genStepBtn" class="outline" disabled>Step</button>
-                <button id="genPlayBtn" disabled>Play</button>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button id="genStartBtn" class="btn btn-primary">Generate</button>
+                  <button id="genStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
+                  <button id="genPlayBtn" class="btn btn-secondary" disabled>Play</button>
+                </div>
               </div>
             </div>
 
-            <div class="stack">
-              <div class="stack">
-                <div class="label">Solver</div>
-                <select id="solverSelect" disabled>
-                  <option value="a-star">A* (Manhattan)</option>
-                  <option value="bfs">BFS</option>
-                  <option value="dijkstra">Dijkstra</option>
-                </select>
-              </div>
+            <div class="col-12 col-md-4">
+              <div class="vstack gap-3">
+                <div>
+                  <label class="form-label">Solver</label>
+                  <select id="solverSelect" class="form-select" disabled>
+                    <option value="a-star">A* (Manhattan)</option>
+                    <option value="bfs">BFS</option>
+                    <option value="dijkstra">Dijkstra</option>
+                  </select>
+                </div>
 
-              <div class="row">
-                <button id="solveStepBtn" class="outline" disabled>Step</button>
-                <button id="solvePlayBtn" disabled>Play</button>
-                <button id="clearBtn" class="outline" disabled>Clear</button>
-              </div>
+                <div class="d-flex gap-2 flex-wrap">
+                  <button id="solveStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
+                  <button id="solvePlayBtn" class="btn btn-secondary" disabled>Play</button>
+                  <button id="clearBtn" class="btn btn-outline-secondary" disabled>Clear</button>
+                </div>
 
-              <div class="label">Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.</div>
+                <div class="muted">Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.</div>
+              </div>
             </div>
 
-            <div class="stack">
-              <div class="stack">
-                <div class="label" id="hzLabel">Speed (Hz): 10</div>
-                <input id="hzRange" type="range" min="10" max="120" step="1" value="10"/>
-              </div>
+            <div class="col-12 col-md-4">
+              <div class="vstack gap-3">
+                <div>
+                  <label class="form-label" id="hzLabel">Speed (Hz): 10</label>
+                  <input id="hzRange" type="range" min="10" max="120" step="1" value="10" class="form-range">
+                </div>
 
-              <div class="stack">
-                <div class="label">Live Stats</div>
-                <div class="stats">
-                  <div class="pair"><span>Visited</span><span id="statVisited">0</span></div>
-                  <div class="pair"><span>Current Path Length</span><span id="statPath">0</span></div>
-                  <div class="pair"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
-                  <div class="sep"></div>
-                  <div class="legend">
-                    <span class="sw" style="background: var(--cyan)"></span><span>Frontier</span>
-                    <span class="sw" style="background: var(--gray)"></span><span>Visited</span>
-                    <span class="sw" style="background: var(--yellow)"></span><span>Path</span>
+                <div>
+                  <div class="form-label">Live Stats</div>
+                  <div class="border rounded p-3 small">
+                    <div class="d-flex justify-content-between"><span>Visited</span><span id="statVisited">0</span></div>
+                    <div class="d-flex justify-content-between"><span>Current Path Length</span><span id="statPath">0</span></div>
+                    <div class="d-flex justify-content-between"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
+                    <hr class="my-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap text-secondary">
+                      <span class="legend-swatch" style="background: var(--cyan)"></span><span>Frontier</span>
+                      <span class="legend-swatch" style="background: var(--gray)"></span><span>Visited</span>
+                      <span class="legend-swatch" style="background: var(--yellow)"></span><span>Path</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div style="margin-top: 16px;" class="canvas-wrap">
-            <canvas id="mazeCanvas" class="canvas"></canvas>
+          <div class="canvas-wrap mt-4">
+            <canvas id="mazeCanvas" class="w-100 h-100 d-block"></canvas>
           </div>
         </div>
       </div>
 
-      <div class="foot">
-        <a href="https://www.dyad.sh/" target="_blank" rel="noopener noreferrer">Made with Dyad</a>
-      </div>
+      <p class="text-center text-secondary small mt-3 mb-0">
+        <a href="https://www.dyad.sh/" class="link-secondary text-decoration-none" target="_blank" rel="noopener noreferrer">Made with Dyad</a>
+      </p>
     </div>
 
     <script>
@@ -714,10 +617,10 @@
         const rect = wrap.getBoundingClientRect();
         canvas.style.width = rect.width + "px";
         canvas.style.height = rect.height + "px";
-        // clientWidth/Height use CSS pixels, backing store set in draw()
       }
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
