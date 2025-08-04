@@ -8,12 +8,10 @@ import { Separator } from "@/components/ui/separator";
 
 type Point = { r: number; c: number };
 
-// Grid cell stores walls for maze carving
 type Cell = {
   walls: { top: boolean; right: boolean; bottom: boolean; left: boolean };
 };
 
-// Algorithms
 type GeneratorType = "recursive-backtracker" | "prims" | "kruskals";
 type SolverType = "a-star" | "bfs" | "dijkstra";
 
@@ -21,30 +19,29 @@ type GenState =
   | {
       type: "recursive-backtracker";
       stack: Point[];
-      visited: boolean[]; // size N*N
+      visited: boolean[];
     }
   | {
       type: "prims";
-      inMaze: boolean[]; // N*N
+      inMaze: boolean[];
       edges: { from: Point; to: Point }[];
     }
   | {
-    type: "kruskals";
-    edges: { a: Point; b: Point }[];
-    parent: number[];
-    rank: number[];
-    edgeIndex: number;
-  }
+      type: "kruskals";
+      edges: { a: Point; b: Point }[];
+      parent: number[];
+      rank: number[];
+      edgeIndex: number;
+    }
   | null;
 
 type SolveState = {
   type: SolverType | null;
-  open: Point[]; // queue for BFS/Dijkstra, binary heap avoided for simplicity since we step
+  open: Point[];
   openSet: Set<number>;
   cameFrom: Map<number, number>;
-  gScore: Map<number, number>; // distance
+  gScore: Map<number, number>;
   visited: Set<number>;
-  // for A*: f = g + h, for Dijkstra: f=g, for BFS: implicit g in visited layers
 };
 
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -117,7 +114,11 @@ function initRecursiveBacktracker(n: number): GenState {
   return { type: "recursive-backtracker", stack: [start], visited };
 }
 
-function stepRecursiveBacktracker(state: Extract<GenState, { type: "recursive-backtracker" }>, grid: Cell[][], n: number): boolean {
+function stepRecursiveBacktracker(
+  state: Extract<GenState, { type: "recursive-backtracker" }>,
+  grid: Cell[][],
+  n: number,
+): boolean {
   const stack = state.stack;
   if (stack.length === 0) return true;
   const current = stack[stack.length - 1];
@@ -142,12 +143,14 @@ function initPrims(n: number): GenState {
   return { type: "prims", inMaze, edges };
 }
 
-function stepPrims(state: Extract<GenState, { type: "prims" }>, grid: Cell[][], n: number): boolean {
+function stepPrims(
+  state: Extract<GenState, { type: "prims" }>,
+  grid: Cell[][],
+  n: number,
+): boolean {
   if (state.edges.length === 0) {
-    // Check if all inMaze true
     return state.inMaze.every(Boolean);
   }
-  // choose random edge
   const i = (Math.random() * state.edges.length) | 0;
   const { from, to } = state.edges.splice(i, 1)[0];
   const toIdx = idx(to.r, to.c, n);
@@ -162,7 +165,6 @@ function stepPrims(state: Extract<GenState, { type: "prims" }>, grid: Cell[][], 
 }
 
 function initKruskals(n: number): GenState {
-  // Build all possible edges between adjacent cells
   const edges: { a: Point; b: Point }[] = [];
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
@@ -198,7 +200,11 @@ function unionSet(parent: number[], rank: number[], x: number, y: number): boole
   return true;
 }
 
-function stepKruskals(state: Extract<GenState, { type: "kruskals" }>, grid: Cell[][], n: number): boolean {
+function stepKruskals(
+  state: Extract<GenState, { type: "kruskals" }>,
+  grid: Cell[][],
+  n: number,
+): boolean {
   if (state.edgeIndex >= state.edges.length) return true;
   const { a, b } = state.edges[state.edgeIndex++];
   const ia = idx(a.r, a.c, n);
@@ -220,7 +226,7 @@ function reconstructPath(cameFrom: Map<number, number>, current: number): number
 }
 
 export default function MazeVisualizer() {
-  const [size, setSize] = useState<number>(30); // 20–100
+  const [size, setSize] = useState<number>(30);
   const [generator, setGenerator] = useState<GeneratorType>("recursive-backtracker");
   const [solver, setSolver] = useState<SolverType>("a-star");
   const [grid, setGrid] = useState<Cell[][]>(() => makeGrid(30));
@@ -255,7 +261,6 @@ export default function MazeVisualizer() {
   const start: Point = useMemo(() => ({ r: 0, c: 0 }), []);
   const goal: Point = useMemo(() => ({ r: n - 1, c: n - 1 }), [n]);
 
-  // Reset grid when size changes
   useEffect(() => {
     setGrid(makeGrid(n));
     setGenState(null);
@@ -337,13 +342,11 @@ export default function MazeVisualizer() {
   }
 
   function pickNextOpenForSolver(): number {
-    // Returns index in open array to pop; selection depends on solver type
     if (!solveState.type) return 0;
     if (solveState.type === "bfs") {
-      return 0; // queue (FIFO)
+      return 0;
     }
     if (solveState.type === "dijkstra" || solveState.type === "a-star") {
-      // choose lowest f = g + h (for dijkstra, h=0)
       let best = 0;
       let bestScore = Infinity;
       for (let i = 0; i < solveState.open.length; i++) {
@@ -387,7 +390,7 @@ export default function MazeVisualizer() {
       const nbId = idx(nb.r, nb.c, n);
       if (solveState.visited.has(nbId)) continue;
 
-      const tentativeG = gCurrent + 1; // uniform cost
+      const tentativeG = gCurrent + 1;
       if (tentativeG < (solveState.gScore.get(nbId) ?? Infinity)) {
         solveState.cameFrom.set(nbId, currentId);
         solveState.gScore.set(nbId, tentativeG);
@@ -407,10 +410,8 @@ export default function MazeVisualizer() {
     return false;
   }
 
-  // Animation loop
   useEffect(() => {
     function loop(t: number) {
-      // Cap generation at 120 FPS
       const dt = t - lastFrameRef.current;
       const genReady = dt >= 1000 / 120;
 
@@ -421,9 +422,8 @@ export default function MazeVisualizer() {
         }
       }
 
-      // Solver at 10 Hz when playing
       const sd = t - lastSolveTickRef.current;
-      const solveReady = sd >= 100; // 10 Hz
+      const solveReady = sd >= 100;
       if (playingSolve && solveReady) {
         lastSolveTickRef.current = t;
         const finished = stepSolverOnce();
@@ -450,7 +450,7 @@ export default function MazeVisualizer() {
     const padding = 16;
     const W = canvas.clientWidth;
     const H = canvas.clientHeight;
-    // resize canvas backing store to device pixels
+
     const dpr = window.devicePixelRatio || 1;
     const bw = Math.floor(W * dpr);
     const bh = Math.floor(H * dpr);
@@ -458,58 +458,61 @@ export default function MazeVisualizer() {
       canvas.width = bw;
       canvas.height = bh;
     }
+
+    // IMPORTANT: reset transform before applying scale each frame
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, W, H);
 
-    // square fit
     const sizePx = Math.min(W, H) - padding * 2;
     const cell = sizePx / n;
     const offsetX = (W - sizePx) / 2;
     const offsetY = (H - sizePx) / 2;
 
-    // Background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, W, H);
 
-    // Fill visited cells (gray)
-    ctx.fillStyle = "#d1d5db"; // gray-300
+    ctx.fillStyle = "#d1d5db";
     for (const v of solveState.visited) {
       const r = Math.floor(v / n);
       const c = v % n;
+      if (r < 0 || r >= n || c < 0 || c >= n) continue;
       ctx.fillRect(offsetX + c * cell, offsetY + r * cell, cell, cell);
     }
 
-    // Frontier (cyan)
-    ctx.fillStyle = "#06b6d4"; // cyan-500
+    ctx.fillStyle = "#06b6d4";
     for (const p of solveState.open) {
+      if (!inBounds(p.r, p.c, n)) continue;
       ctx.fillRect(offsetX + p.c * cell, offsetY + p.r * cell, cell, cell);
     }
 
-    // Path (yellow)
     if (pathNodes.length > 0) {
-      ctx.fillStyle = "#facc15"; // yellow-400
+      ctx.fillStyle = "#facc15";
       for (const v of pathNodes) {
         const r = Math.floor(v / n);
         const c = v % n;
+        if (!inBounds(r, c, n)) continue;
         ctx.fillRect(offsetX + c * cell, offsetY + r * cell, cell, cell);
       }
     }
 
-    // Start and Goal overlay
-    ctx.fillStyle = "#86efac"; // green-300
+    ctx.fillStyle = "#86efac";
     ctx.fillRect(offsetX + start.c * cell, offsetY + start.r * cell, cell, cell);
-    ctx.fillStyle = "#fda4af"; // rose-300
+    ctx.fillStyle = "#fda4af";
     ctx.fillRect(offsetX + goal.c * cell, offsetY + goal.r * cell, cell, cell);
 
-    // Draw walls
-    ctx.strokeStyle = "#111827"; // gray-900
+    ctx.strokeStyle = "#111827";
     ctx.lineWidth = Math.max(1, cell * 0.08);
     ctx.beginPath();
     for (let r = 0; r < n; r++) {
+      const row = grid[r];
+      if (!row) continue;
       for (let c = 0; c < n; c++) {
+        const cellObj = row[c];
+        if (!cellObj) continue;
         const x = offsetX + c * cell;
         const y = offsetY + r * cell;
-        const w = grid[r][c].walls;
+        const w = cellObj.walls;
         if (w.top) {
           ctx.moveTo(x, y);
           ctx.lineTo(x + cell, y);
@@ -530,7 +533,7 @@ export default function MazeVisualizer() {
     }
     ctx.stroke();
 
-    // Reset transform scaling for next pass
+    // reset for next frame to be safe
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
@@ -565,12 +568,10 @@ export default function MazeVisualizer() {
   function onChangeSolver(value: string) {
     setSolver(value as SolverType);
     if (solveState.type) {
-      // re-init to switch algorithm
       initSolver(value as SolverType);
     }
   }
 
-  // Controls disabled states
   const canGenerate = !playingGen;
   const canSolve = generated && !playingGen;
 
