@@ -252,6 +252,9 @@ export default function MazeVisualizer() {
     heuristic: 0,
   });
 
+  // New: solver speed (Hz) 10–120
+  const [speedHz, setSpeedHz] = useState<number>(10);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const requestRef = useRef<number | null>(null);
   const lastFrameRef = useRef<number>(0);
@@ -412,6 +415,7 @@ export default function MazeVisualizer() {
 
   useEffect(() => {
     function loop(t: number) {
+      // Generation capped at 120 FPS
       const dt = t - lastFrameRef.current;
       const genReady = dt >= 1000 / 120;
 
@@ -422,8 +426,10 @@ export default function MazeVisualizer() {
         }
       }
 
+      // Solver frequency uses speedHz (10–120 Hz)
       const sd = t - lastSolveTickRef.current;
-      const solveReady = sd >= 100;
+      const solveIntervalMs = 1000 / clamp(speedHz, 10, 120);
+      const solveReady = sd >= solveIntervalMs;
       if (playingSolve && solveReady) {
         lastSolveTickRef.current = t;
         const finished = stepSolverOnce();
@@ -439,7 +445,7 @@ export default function MazeVisualizer() {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playingGen, playingSolve, genState, solver, generator, grid, n]);
+  }, [playingGen, playingSolve, genState, solver, generator, grid, n, speedHz]);
 
   function draw() {
     const canvas = canvasRef.current;
@@ -459,7 +465,6 @@ export default function MazeVisualizer() {
       canvas.height = bh;
     }
 
-    // IMPORTANT: reset transform before applying scale each frame
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, W, H);
@@ -533,7 +538,6 @@ export default function MazeVisualizer() {
     }
     ctx.stroke();
 
-    // reset for next frame to be safe
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 
@@ -653,33 +657,45 @@ export default function MazeVisualizer() {
               </Button>
             </div>
             <div className="text-sm text-muted-foreground">
-              Start: top-left, Goal: bottom-right. Play = 10 Hz; generation capped at 120 FPS.
+              Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Live Stats</Label>
-            <div className="rounded-md border p-3 text-sm space-y-1">
-              <div className="flex justify-between">
-                <span>Visited</span>
-                <span>{stats.visited}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Current Path Length</span>
-                <span>{stats.pathLen}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Heuristic (Manhattan)</span>
-                <span>{stats.heuristic}</span>
-              </div>
-              <Separator className="my-1" />
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#06b6d4" }} />
-                <span className="text-xs">Frontier</span>
-                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#d1d5db" }} />
-                <span className="text-xs">Visited</span>
-                <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#facc15" }} />
-                <span className="text-xs">Path</span>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Speed (Hz): {speedHz}</Label>
+              <Slider
+                value={[speedHz]}
+                min={10}
+                max={120}
+                step={1}
+                onValueChange={(v) => setSpeedHz(clamp(v[0], 10, 120))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Live Stats</Label>
+              <div className="rounded-md border p-3 text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span>Visited</span>
+                  <span>{stats.visited}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Current Path Length</span>
+                  <span>{stats.pathLen}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Heuristic (Manhattan)</span>
+                  <span>{stats.heuristic}</span>
+                </div>
+                <Separator className="my-1" />
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#06b6d4" }} />
+                  <span className="text-xs">Frontier</span>
+                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#d1d5db" }} />
+                  <span className="text-xs">Visited</span>
+                  <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: "#facc15" }} />
+                  <span className="text-xs">Path</span>
+                </div>
               </div>
             </div>
           </div>
