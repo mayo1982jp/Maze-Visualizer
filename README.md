@@ -45,7 +45,7 @@
 ## 制作・クレジット
 - 本プロジェクトはオープンソースAIコーディングエディタ「Dyad」を使って作成しました。  
   - Dyad: https://www.dyad.sh/
-- 使用AIモデル: OpenAI Horizon-Beta
+- 使用AIモデル: OpenAI Horizon-Beta (OpenRouter API)
 
 ## ライセンス
 MIT
