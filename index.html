@@ -44,9 +44,8 @@
         <!-- Grid size card -->
         <div class="col-12 col-md-6 col-lg-3">
           <div class="card h-100">
-            <div class="card-header fw-semibold">Grid size</div>
+            <div class="card-header fw-semibold" id="gridSizeHeader">Grid size: 30 x 30</div>
             <div class="card-body">
-              <label class="form-label" id="sizeLabel">Grid size: 30 x 30</label>
               <input id="sizeRange" type="range" min="20" max="100" step="1" value="30" class="form-range">
 
               <div class="mt-3">
@@ -279,7 +278,7 @@
       let speedHz = 10;
 
       // DOM
-      const sizeLabel = document.getElementById("sizeLabel");
+      const gridSizeHeader = document.getElementById("gridSizeHeader");
       const sizeRange = document.getElementById("sizeRange");
       const genSelect = document.getElementById("genSelect");
       const genStartBtn = document.getElementById("genStartBtn");
@@ -565,10 +564,11 @@
       // Events
       sizeRange.addEventListener('input', () => {
         const val = clamp(parseInt(sizeRange.value,10) || 30, 20, 100);
-        sizeLabel.textContent = `Grid size: ${val} x ${val}`;
+        gridSizeHeader.textContent = `Grid size: ${val} x ${val}`;
       });
       sizeRange.addEventListener('change', () => {
         const val = clamp(parseInt(sizeRange.value,10) || 30, 20, 100);
+        gridSizeHeader.textContent = `Grid size: ${val} x ${val}`;
         resetGrid(val);
         updateControls();
       });
@@ -617,8 +617,8 @@
 
       hzRange.addEventListener('input', () => {
         const v = clamp(parseInt(hzRange.value,10) || 10, 10, 120);
+        document.getElementById("hzLabel").textContent = `Speed (Hz): ${v}`;
         speedHz = v;
-        hzLabel.textContent = `Speed (Hz): ${v}`;
       });
 
       // Initial control states
@@ -629,7 +629,6 @@
       function resizeCanvas(){
         const wrap = document.querySelector('.canvas-wrap');
         const rect = wrap.getBoundingClientRect();
-        const canvas = document.getElementById("mazeCanvas");
         canvas.style.width = rect.width + "px";
         canvas.style.height = rect.height + "px";
       }
