@@ -1,13 +1,723 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dyad-generated-app</title>
-  </head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Maze Generator & Algorithm Visualizer</title>
+    <style>
+      :root {
+        --bg: #0b0c0f;
+        --panel: #11131a;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: #1f2430;
+        --btn: #1f2937;
+        --btn-h: #2b3647;
 
+        --cyan: #06b6d4;
+        --gray: #d1d5db;
+        --yellow: #facc15;
+        --green: #86efac;
+        --rose: #fda4af;
+        --line: #111827;
+        --white: #ffffff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .card-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .card-content {
+        padding: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      @media (min-width: 768px) {
+        .grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      .stack { display: grid; gap: 12px; }
+      .label { font-size: 14px; color: var(--muted); }
+
+      .row { display: flex; gap: 8px; flex-wrap: wrap; }
+      button, select {
+        background: var(--btn);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover, select:hover { background: var(--btn-h); }
+      button[disabled], select[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      button.outline {
+        background: transparent;
+      }
+      input[type="range"] {
+        width: 100%;
+        appearance: none;
+        height: 6px;
+        border-radius: 9999px;
+        background: #2a2f3a;
+        outline: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #64748b;
+        border: 2px solid #94a3b8;
+        cursor: pointer;
+      }
+      .stats {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 14px;
+        display: grid;
+        gap: 6px;
+      }
+      .stats .pair { display: flex; align-items: center; justify-content: space-between; }
+      .legend {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+      .sep { height: 1px; width: 100%; background: var(--border); margin: 6px 0; }
+
+      .canvas-wrap {
+        width: 100%;
+        height: 480px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--white);
+      }
+      @media (min-width: 768px) {
+        .canvas-wrap { height: 640px; }
+      }
+
+      .foot {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 12px;
+      }
+      .foot a { color: var(--muted); text-decoration: none; }
+      .foot a:hover { text-decoration: underline; }
+    </style>
+  </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div class="container">
+      <div class="card">
+        <div class="card-header">Maze Generator & Algorithm Visualizer</div>
+        <div class="card-content">
+          <div class="grid">
+            <div class="stack">
+              <div class="stack">
+                <div class="label" id="sizeLabel">Grid size: 30 x 30</div>
+                <input id="sizeRange" type="range" min="20" max="100" step="1" value="30"/>
+              </div>
+
+              <div class="stack">
+                <div class="label">Generator</div>
+                <select id="genSelect">
+                  <option value="recursive-backtracker">Recursive Backtracker</option>
+                  <option value="prims">Prim's</option>
+                  <option value="kruskals">Kruskal's</option>
+                </select>
+              </div>
+
+              <div class="row">
+                <button id="genStartBtn">Generate</button>
+                <button id="genStepBtn" class="outline" disabled>Step</button>
+                <button id="genPlayBtn" disabled>Play</button>
+              </div>
+            </div>
+
+            <div class="stack">
+              <div class="stack">
+                <div class="label">Solver</div>
+                <select id="solverSelect" disabled>
+                  <option value="a-star">A* (Manhattan)</option>
+                  <option value="bfs">BFS</option>
+                  <option value="dijkstra">Dijkstra</option>
+                </select>
+              </div>
+
+              <div class="row">
+                <button id="solveStepBtn" class="outline" disabled>Step</button>
+                <button id="solvePlayBtn" disabled>Play</button>
+                <button id="clearBtn" class="outline" disabled>Clear</button>
+              </div>
+
+              <div class="label">Start: top-left, Goal: bottom-right. Generation capped at 120 FPS.</div>
+            </div>
+
+            <div class="stack">
+              <div class="stack">
+                <div class="label" id="hzLabel">Speed (Hz): 10</div>
+                <input id="hzRange" type="range" min="10" max="120" step="1" value="10"/>
+              </div>
+
+              <div class="stack">
+                <div class="label">Live Stats</div>
+                <div class="stats">
+                  <div class="pair"><span>Visited</span><span id="statVisited">0</span></div>
+                  <div class="pair"><span>Current Path Length</span><span id="statPath">0</span></div>
+                  <div class="pair"><span>Heuristic (Manhattan)</span><span id="statH">0</span></div>
+                  <div class="sep"></div>
+                  <div class="legend">
+                    <span class="sw" style="background: var(--cyan)"></span><span>Frontier</span>
+                    <span class="sw" style="background: var(--gray)"></span><span>Visited</span>
+                    <span class="sw" style="background: var(--yellow)"></span><span>Path</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;" class="canvas-wrap">
+            <canvas id="mazeCanvas" class="canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot">
+        <a href="https://www.dyad.sh/" target="_blank" rel="noopener noreferrer">Made with Dyad</a>
+      </div>
+    </div>
+
+    <script>
+      // Utilities
+      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+      const idx = (r, c, n) => r * n + c;
+      const inBounds = (r, c, n) => r >= 0 && r < n && c >= 0 && c < n;
+      const manhattan = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c);
+      const neighbors4 = (n, p) =>
+        [{r:p.r-1,c:p.c},{r:p.r,c:p.c+1},{r:p.r+1,c:p.c},{r:p.r,c:p.c-1}]
+        .filter(q => inBounds(q.r, q.c, n));
+      function shuffleInPlace(arr){ for(let i=arr.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; [arr[i],arr[j]]=[arr[j],arr[i]]; } }
+
+      function makeGrid(n){
+        return Array.from({length:n},()=>Array.from({length:n},()=>({
+          walls:{top:true,right:true,bottom:true,left:true}
+        })));
+      }
+      function removeWall(grid,a,b){
+        if(a.r===b.r){
+          if(a.c+1===b.c){ grid[a.r][a.c].walls.right=false; grid[b.r][b.c].walls.left=false; }
+          else if(a.c-1===b.c){ grid[a.r][a.c].walls.left=false; grid[b.r][b.c].walls.right=false; }
+        } else if(a.c===b.c){
+          if(a.r+1===b.r){ grid[a.r][a.c].walls.bottom=false; grid[b.r][b.c].walls.top=false; }
+          else if(a.r-1===b.r){ grid[a.r][a.c].walls.top=false; grid[b.r][b.c].walls.bottom=false; }
+        }
+      }
+      function wallBetween(grid,a,b){
+        if(a.r===b.r){
+          if(a.c+1===b.c) return grid[a.r][a.c].walls.right || grid[b.r][b.c].walls.left;
+          if(a.c-1===b.c) return grid[a.r][a.c].walls.left || grid[b.r][b.c].walls.right;
+        } else if(a.c===b.c){
+          if(a.r+1===b.r) return grid[a.r][a.c].walls.bottom || grid[b.r][b.c].walls.top;
+          if(a.r-1===b.r) return grid[a.r][a.c].walls.top || grid[b.r][b.c].walls.bottom;
+        }
+        return true;
+      }
+
+      // Generators
+      function initRecursiveBacktracker(n){
+        const visited = Array(n*n).fill(false);
+        const start = {r:0,c:0};
+        visited[idx(0,0,n)] = true;
+        return { type:"recursive-backtracker", stack:[start], visited };
+      }
+      function stepRecursiveBacktracker(state, grid, n){
+        const stack = state.stack;
+        if(stack.length===0) return true;
+        const current = stack[stack.length-1];
+        const candidates = neighbors4(n,current).filter(p=>!state.visited[idx(p.r,p.c,n)]);
+        if(candidates.length===0){ stack.pop(); return false; }
+        const next = candidates[(Math.random()*candidates.length)|0];
+        removeWall(grid,current,next);
+        state.visited[idx(next.r,next.c,n)] = true;
+        stack.push(next);
+        return stack.length===0;
+      }
+
+      function initPrims(n){
+        const inMaze = Array(n*n).fill(false);
+        inMaze[idx(0,0,n)] = true;
+        const edges = [];
+        neighbors4(n,{r:0,c:0}).forEach(to=>edges.push({from:{r:0,c:0}, to}));
+        return { type:"prims", inMaze, edges };
+      }
+      function stepPrims(state, grid, n){
+        if(state.edges.length===0) return state.inMaze.every(Boolean);
+        const i = (Math.random()*state.edges.length)|0;
+        const {from,to} = state.edges.splice(i,1)[0];
+        const toIdx = idx(to.r,to.c,n);
+        if(!state.inMaze[toIdx] && state.inMaze[idx(from.r,from.c,n)]){
+          removeWall(grid,from,to);
+          state.inMaze[toIdx] = true;
+          neighbors4(n,to).forEach(nxt=>{
+            if(!state.inMaze[idx(nxt.r,nxt.c,n)]) state.edges.push({from:to, to:nxt});
+          });
+        }
+        return false;
+      }
+
+      function initKruskals(n){
+        const edges=[];
+        for(let r=0;r<n;r++){
+          for(let c=0;c<n;c++){
+            if(r+1<n) edges.push({a:{r,c}, b:{r:r+1,c}});
+            if(c+1<n) edges.push({a:{r,c}, b:{r,c:c+1}});
+          }
+        }
+        shuffleInPlace(edges);
+        const parent = Array(n*n).fill(0).map((_,i)=>i);
+        const rank = Array(n*n).fill(0);
+        return { type:"kruskals", edges, parent, rank, edgeIndex:0 };
+      }
+      function findSet(parent,x){ while(x!==parent[x]){ parent[x]=parent[parent[x]]; x=parent[x]; } return x; }
+      function unionSet(parent,rank,x,y){
+        const rx=findSet(parent,x), ry=findSet(parent,y);
+        if(rx===ry) return false;
+        if(rank[rx]<rank[ry]) parent[rx]=ry;
+        else if(rank[rx]>rank[ry]) parent[ry]=rx;
+        else { parent[ry]=rx; rank[rx]++; }
+        return true;
+      }
+      function stepKruskals(state, grid, n){
+        if(state.edgeIndex>=state.edges.length) return true;
+        const {a,b} = state.edges[state.edgeIndex++];
+        const ia=idx(a.r,a.c,n), ib=idx(b.r,b.c,n);
+        if(unionSet(state.parent,state.rank,ia,ib)){ removeWall(grid,a,b); }
+        return state.edgeIndex>=state.edges.length;
+      }
+
+      // Solver helpers
+      function reconstructPath(cameFrom, current){
+        const path=[current];
+        while(cameFrom.has(current)){
+          current = cameFrom.get(current);
+          path.push(current);
+        }
+        path.reverse();
+        return path;
+      }
+
+      // State
+      let size = 30;
+      let grid = makeGrid(size);
+      let generator = "recursive-backtracker";
+      let genState = null;
+      let generated = false;
+
+      let solver = "a-star";
+      const solveState = {
+        type: null,
+        open: [],
+        openSet: new Set(),
+        cameFrom: new Map(),
+        gScore: new Map(),
+        visited: new Set(),
+      };
+      let pathNodes = [];
+      let stats = { visited: 0, pathLen: 0, heuristic: 0 };
+
+      let playingGen = false;
+      let playingSolve = false;
+      let speedHz = 10;
+
+      // DOM
+      const sizeLabel = document.getElementById("sizeLabel");
+      const sizeRange = document.getElementById("sizeRange");
+      const genSelect = document.getElementById("genSelect");
+      const genStartBtn = document.getElementById("genStartBtn");
+      const genStepBtn = document.getElementById("genStepBtn");
+      const genPlayBtn = document.getElementById("genPlayBtn");
+
+      const solverSelect = document.getElementById("solverSelect");
+      const solveStepBtn = document.getElementById("solveStepBtn");
+      const solvePlayBtn = document.getElementById("solvePlayBtn");
+      const clearBtn = document.getElementById("clearBtn");
+
+      const hzLabel = document.getElementById("hzLabel");
+      const hzRange = document.getElementById("hzRange");
+
+      const statVisited = document.getElementById("statVisited");
+      const statPath = document.getElementById("statPath");
+      const statH = document.getElementById("statH");
+
+      const canvas = document.getElementById("mazeCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Derived
+      const start = {r:0, c:0};
+      function goal(){ return {r:size-1, c:size-1}; }
+
+      function resetGrid(n){
+        size = n;
+        grid = makeGrid(size);
+        genState = null;
+        generated = false;
+        playingGen = false;
+        resetSolver();
+      }
+      function startGeneration(){
+        grid = makeGrid(size);
+        if(generator==="recursive-backtracker") genState = initRecursiveBacktracker(size);
+        else if(generator==="prims") genState = initPrims(size);
+        else genState = initKruskals(size);
+        generated = false;
+        playingGen = true;
+        resetSolver();
+        updateControls();
+      }
+      function stepGenerationOnce(){
+        if(!genState) return true;
+        let done = false;
+        if(genState.type==="recursive-backtracker") done = stepRecursiveBacktracker(genState, grid, size);
+        else if(genState.type==="prims") done = stepPrims(genState, grid, size);
+        else if(genState.type==="kruskals") done = stepKruskals(genState, grid, size);
+        if(done || (genState.type==="recursive-backtracker" && genState.stack.length===0)){
+          generated = true;
+          playingGen = false;
+          genState = null;
+          updateControls();
+        }
+        return done;
+      }
+
+      function initSolver(type){
+        if(!generated) return;
+        solver = type;
+        solveState.type = type;
+        solveState.open = [];
+        solveState.openSet = new Set();
+        solveState.cameFrom = new Map();
+        solveState.gScore = new Map();
+        solveState.visited = new Set();
+        pathNodes = [];
+        stats = { visited: 0, pathLen: 0, heuristic: manhattan(start, goal()) };
+
+        const sIdx = idx(start.r, start.c, size);
+        solveState.open.push({r:start.r,c:start.c});
+        solveState.openSet.add(sIdx);
+        solveState.gScore.set(sIdx, 0);
+        updateControls();
+      }
+      function resetSolver(){
+        solveState.type = null;
+        solveState.open = [];
+        solveState.openSet = new Set();
+        solveState.cameFrom = new Map();
+        solveState.gScore = new Map();
+        solveState.visited = new Set();
+        pathNodes = [];
+        stats = { visited: 0, pathLen: 0, heuristic: 0 };
+        playingSolve = false;
+        updateControls();
+      }
+      function traverseNeighbors(p){
+        const list = [];
+        for(const q of neighbors4(size,p)){
+          if(!wallBetween(grid,p,q)) list.push(q);
+        }
+        return list;
+      }
+      function pickNextOpenForSolver(){
+        if(!solveState.type) return 0;
+        if(solveState.type==="bfs") return 0;
+        if(solveState.type==="dijkstra" || solveState.type==="a-star"){
+          let best=0, bestScore=Infinity;
+          for(let i=0;i<solveState.open.length;i++){
+            const p = solveState.open[i];
+            const id = idx(p.r,p.c,size);
+            const g = solveState.gScore.get(id) ?? Infinity;
+            const h = solveState.type==="a-star" ? manhattan(p, goal()) : 0;
+            const f = g + h;
+            if(f<bestScore){ bestScore=f; best=i; }
+          }
+          return best;
+        }
+        return 0;
+      }
+      function stepSolverOnce(){
+        if(!solveState.type) return true;
+        if(solveState.open.length===0) return true;
+
+        const i = pickNextOpenForSolver();
+        const current = solveState.open.splice(i,1)[0];
+        const currentId = idx(current.r,current.c,size);
+        solveState.openSet.delete(currentId);
+
+        if(!solveState.visited.has(currentId)){
+          solveState.visited.add(currentId);
+        }
+        if(current.r===goal().r && current.c===goal().c){
+          const path = reconstructPath(solveState.cameFrom, currentId);
+          pathNodes = path;
+          stats.pathLen = path.length;
+          updateStats();
+          return true;
+        }
+        const gCurrent = solveState.gScore.get(currentId) ?? Infinity;
+        for(const nb of traverseNeighbors(current)){
+          const nbId = idx(nb.r, nb.c, size);
+          if(solveState.visited.has(nbId)) continue;
+          const tentativeG = gCurrent + 1;
+          if(tentativeG < (solveState.gScore.get(nbId) ?? Infinity)){
+            solveState.cameFrom.set(nbId, currentId);
+            solveState.gScore.set(nbId, tentativeG);
+            if(!solveState.openSet.has(nbId)){
+              solveState.open.push(nb);
+              solveState.openSet.add(nbId);
+            }
+          }
+        }
+        stats.visited = solveState.visited.size;
+        stats.heuristic = manhattan(current, goal());
+        stats.pathLen = pathNodes.length;
+        updateStats();
+        return false;
+      }
+
+      // Controls enable/disable
+      function updateControls(){
+        genStepBtn.disabled = !genState;
+        genPlayBtn.disabled = !genState;
+        genPlayBtn.textContent = playingGen ? "Pause" : "Play";
+
+        const canSolve = generated && !playingGen;
+        solverSelect.disabled = !canSolve;
+        solveStepBtn.disabled = !canSolve;
+        solvePlayBtn.disabled = !canSolve;
+        clearBtn.disabled = !generated;
+
+        solvePlayBtn.textContent = playingSolve ? "Pause" : "Play";
+      }
+      function updateStats(){
+        statVisited.textContent = String(stats.visited);
+        statPath.textContent = String(stats.pathLen);
+        statH.textContent = String(stats.heuristic);
+      }
+
+      // Canvas draw
+      let lastGenTick = 0;
+      let lastSolveTick = 0;
+
+      function draw(){
+        const padding = 16;
+        const dpr = window.devicePixelRatio || 1;
+        const W = canvas.clientWidth;
+        const H = canvas.clientHeight;
+        const bw = Math.floor(W * dpr);
+        const bh = Math.floor(H * dpr);
+        if(canvas.width !== bw || canvas.height !== bh){
+          canvas.width = bw; canvas.height = bh;
+        }
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0,0,W,H);
+
+        const sizePx = Math.min(W,H) - padding*2;
+        const cell = sizePx / size;
+        const offsetX = (W - sizePx)/2;
+        const offsetY = (H - sizePx)/2;
+
+        // background
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,W,H);
+
+        // visited
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--gray') || "#d1d5db";
+        for(const v of solveState.visited){
+          const r = Math.floor(v / size);
+          const c = v % size;
+          if(r<0||r>=size||c<0||c>=size) continue;
+          ctx.fillRect(offsetX + c*cell, offsetY + r*cell, cell, cell);
+        }
+
+        // frontier
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--cyan') || "#06b6d4";
+        for(const p of solveState.open){
+          if(!inBounds(p.r,p.c,size)) continue;
+          ctx.fillRect(offsetX + p.c*cell, offsetY + p.r*cell, cell, cell);
+        }
+
+        // path
+        if(pathNodes.length>0){
+          ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--yellow') || "#facc15";
+          for(const v of pathNodes){
+            const r = Math.floor(v / size);
+            const c = v % size;
+            if(!inBounds(r,c,size)) continue;
+            ctx.fillRect(offsetX + c*cell, offsetY + r*cell, cell, cell);
+          }
+        }
+
+        // start & goal
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--green') || "#86efac";
+        ctx.fillRect(offsetX + start.c*cell, offsetY + start.r*cell, cell, cell);
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--rose') || "#fda4af";
+        const g = goal();
+        ctx.fillRect(offsetX + g.c*cell, offsetY + g.r*cell, cell, cell);
+
+        // walls
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line') || "#111827";
+        ctx.lineWidth = Math.max(1, cell * 0.08);
+        ctx.beginPath();
+        for(let r=0;r<size;r++){
+          const row = grid[r];
+          if(!row) continue;
+          for(let c=0;c<size;c++){
+            const cellObj = row[c];
+            if(!cellObj) continue;
+            const x = offsetX + c*cell;
+            const y = offsetY + r*cell;
+            const w = cellObj.walls;
+            if(w.top){ ctx.moveTo(x,y); ctx.lineTo(x+cell, y); }
+            if(w.right){ ctx.moveTo(x+cell,y); ctx.lineTo(x+cell, y+cell); }
+            if(w.bottom){ ctx.moveTo(x,y+cell); ctx.lineTo(x+cell, y+cell); }
+            if(w.left){ ctx.moveTo(x,y); ctx.lineTo(x, y+cell); }
+          }
+        }
+        ctx.stroke();
+
+        ctx.setTransform(1,0,0,1,0,0);
+      }
+
+      function loop(t){
+        // generation up to 120fps
+        const genReady = (t - lastGenTick) >= (1000/120);
+        if(playingGen && genReady){
+          lastGenTick = t;
+          if(stepGenerationOnce()){
+            playingGen = false;
+          }
+        }
+
+        // solver speed based on speedHz
+        const solveInterval = 1000 / clamp(speedHz, 10, 120);
+        const solveReady = (t - lastSolveTick) >= solveInterval;
+        if(playingSolve && solveReady){
+          lastSolveTick = t;
+          const finished = stepSolverOnce();
+          if(finished) playingSolve = false;
+        }
+
+        draw();
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      // Events
+      sizeRange.addEventListener('input', () => {
+        const val = clamp(parseInt(sizeRange.value,10) || 30, 20, 100);
+        sizeLabel.textContent = `Grid size: ${val} x ${val}`;
+      });
+      sizeRange.addEventListener('change', () => {
+        const val = clamp(parseInt(sizeRange.value,10) || 30, 20, 100);
+        resetGrid(val);
+        updateControls();
+      });
+
+      genSelect.addEventListener('change', () => {
+        generator = genSelect.value;
+        generated = false;
+        genState = null;
+        updateControls();
+      });
+
+      genStartBtn.addEventListener('click', () => {
+        startGeneration();
+      });
+      genStepBtn.addEventListener('click', () => {
+        stepGenerationOnce();
+        draw();
+      });
+      genPlayBtn.addEventListener('click', () => {
+        if(!genState) return;
+        playingGen = !playingGen;
+        updateControls();
+      });
+
+      solverSelect.addEventListener('change', () => {
+        if(solveState.type) {
+          initSolver(solverSelect.value);
+        } else {
+          solver = solverSelect.value;
+        }
+      });
+
+      solveStepBtn.addEventListener('click', () => {
+        if(!solveState.type) initSolver(solverSelect.value);
+        else stepSolverOnce();
+        draw();
+      });
+      solvePlayBtn.addEventListener('click', () => {
+        if(!solveState.type) initSolver(solverSelect.value);
+        playingSolve = !playingSolve;
+        updateControls();
+      });
+      clearBtn.addEventListener('click', () => {
+        resetSolver();
+      });
+
+      hzRange.addEventListener('input', () => {
+        const v = clamp(parseInt(hzRange.value,10) || 10, 10, 120);
+        speedHz = v;
+        hzLabel.textContent = `Speed (Hz): ${v}`;
+      });
+
+      // Initial control states
+      updateControls();
+      updateStats();
+
+      // Responsive canvas sizing
+      function resizeCanvas(){
+        const wrap = document.querySelector('.canvas-wrap');
+        const rect = wrap.getBoundingClientRect();
+        canvas.style.width = rect.width + "px";
+        canvas.style.height = rect.height + "px";
+        // clientWidth/Height use CSS pixels, backing store set in draw()
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+    </script>
   </body>
 </html>
