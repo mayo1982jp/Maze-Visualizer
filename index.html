@@ -61,7 +61,6 @@
 
                 <div class="d-flex gap-2 flex-wrap mt-3">
                   <button id="genStartBtn" class="btn btn-primary">Generate</button>
-                  <button id="genStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
                   <button id="genPlayBtn" class="btn btn-secondary" disabled>Play</button>
                 </div>
               </div>
@@ -79,7 +78,6 @@
                 </select>
 
                 <div class="d-flex gap-2 flex-wrap mt-3">
-                  <button id="solveStepBtn" class="btn btn-outline-secondary" disabled>Step</button>
                   <button id="solvePlayBtn" class="btn btn-secondary" disabled>Play</button>
                   <button id="clearBtn" class="btn btn-outline-secondary" disabled>Clear</button>
                 </div>
@@ -123,7 +121,6 @@
         <!-- Right canvas column -->
         <div class="col-12 col-md-8 col-lg-9">
           <div class="canvas-wrap">
-            <!-- Set width/height to same value -->
             <canvas id="mazeCanvas" class="w-100 h-100 d-block" style="width: 640px; height: 640px;" width="640" height="640"></canvas>
           </div>
         </div>
@@ -281,11 +278,9 @@
       const sizeRange = document.getElementById("sizeRange");
       const genSelect = document.getElementById("genSelect");
       const genStartBtn = document.getElementById("genStartBtn");
-      const genStepBtn = document.getElementById("genStepBtn");
       const genPlayBtn = document.getElementById("genPlayBtn");
 
       const solverSelect = document.getElementById("solverSelect");
-      const solveStepBtn = document.getElementById("solveStepBtn");
       const solvePlayBtn = document.getElementById("solvePlayBtn");
       const clearBtn = document.getElementById("clearBtn");
 
@@ -432,13 +427,12 @@
 
       // Controls enable/disable
       function updateControls(){
-        genStepBtn.disabled = !genState;
+        // Generator controls
         genPlayBtn.disabled = !genState;
         genPlayBtn.textContent = playingGen ? "Pause" : "Play";
 
         const canSolve = generated && !playingGen;
         solverSelect.disabled = !canSolve;
-        solveStepBtn.disabled = !canSolve;
         solvePlayBtn.disabled = !canSolve;
         clearBtn.disabled = !generated;
 
@@ -582,10 +576,6 @@
       genStartBtn.addEventListener('click', () => {
         startGeneration();
       });
-      genStepBtn.addEventListener('click', () => {
-        stepGenerationOnce();
-        draw();
-      });
       genPlayBtn.addEventListener('click', () => {
         if(!genState) return;
         playingGen = !playingGen;
@@ -600,11 +590,6 @@
         }
       });
 
-      solveStepBtn.addEventListener('click', () => {
-        if(!solveState.type) initSolver(solverSelect.value);
-        else stepSolverOnce();
-        draw();
-      });
       solvePlayBtn.addEventListener('click', () => {
         if(!solveState.type) initSolver(solverSelect.value);
         playingSolve = !playingSolve;
