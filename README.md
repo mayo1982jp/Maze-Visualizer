@@ -42,5 +42,10 @@
 - 探索アルゴリズム
   - BFS/Dijkstra/A*: open set と visited を追跡、A* はマンハッタン距離でヒューリスティック評価
 
+## 制作・クレジット
+- 本プロジェクトはオープンソースAIコーディングエディタ「Dyad」を使って作成しました。  
+  - Dyad: https://www.dyad.sh/
+- 使用AIモデル: OpenAI Horizon-Beta
+
 ## ライセンス
 MIT
